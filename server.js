@@ -17,6 +17,16 @@ const server = express()
 // Create the WebSockets server
 const wss = new SocketServer({ server });
 
+// Keep track of colors for users
+const userColors = {
+
+}
+const colors = ['#00008b',  '#458b00', '#006400', '#b23aee']
+
+function randomColor(){
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
 // Set up a callback that will run when a client connects to the server
 // When a client connects they are assigned a socket, represented by
 // the ws parameter in the callback.
@@ -35,12 +45,25 @@ wss.on('connection', (ws) => {
   ws.on('message', (message)=>{
     messageJSON = JSON.parse(message);
     messageJSON.id = uuidv1();
+    console.log(messageJSON)
+    if(!userColors[messageJSON.username]){
+      userColors[messageJSON.username] = randomColor();
+    }
+    messageJSON.userColor = userColors[messageJSON.username]
+    console.log(messageJSON)
+
     switch(messageJSON.type){
       case "postMessage":
         messageJSON.type = "incomingMessage"
       break;
       case "postNotification":
         messageJSON.type = "incomingNotification"
+        const oldUser = messageJSON.content.oldUser;
+        const newUser = messageJSON.content.newUser;
+        if (userColors[oldUser]){
+          userColors[newUser] = userColors[oldUser];
+        }
+        messageJSON.content = `${oldUser} has changed their name to ${newUser}`
       break;
     }
     wss.clients.forEach((client)=>{
