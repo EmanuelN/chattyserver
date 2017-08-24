@@ -19,7 +19,7 @@ const wss = new SocketServer({ server });
 
 // Keep track of colors for users
 const userColors = {
-
+  Anon: 'black'
 }
 const colors = ['#00008b',  '#458b00', '#006400', '#b23aee']
 
@@ -60,7 +60,8 @@ wss.on('connection', (ws) => {
         messageJSON.type = "incomingNotification"
         const oldUser = messageJSON.content.oldUser;
         const newUser = messageJSON.content.newUser;
-        if (userColors[oldUser]){
+        //If the user was anon their color will change, but not otherwise
+        if (userColors[oldUser] && oldUser !== 'Anon'){
           userColors[newUser] = userColors[oldUser];
         }
         messageJSON.content = `${oldUser} has changed their name to ${newUser}`
